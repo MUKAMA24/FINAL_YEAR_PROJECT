@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: appointment-booking-backend
+    env: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: false
+databases:
+  - name: appointment-booking-db
+    plan: free
+    databaseName: appointment_db
+    user: appointment_user
