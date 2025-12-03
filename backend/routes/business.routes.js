@@ -15,7 +15,7 @@ router.get('/', async (req, res) => {
       SELECT b.*, u.name as owner_name, u.email as owner_email
       FROM businesses b
       JOIN users u ON b.user_id = u.id
-      WHERE b.is_approved = true
+      WHERE 1=1
     `;
     const params = [];
     let paramCount = 1;
@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
     const businesses = await db.any(query, params);
 
     // Get total count
-    let countQuery = 'SELECT COUNT(*) FROM businesses WHERE is_approved = true';
+    let countQuery = 'SELECT COUNT(*) FROM businesses WHERE 1=1';
     const countParams = [];
     let countParamNum = 1;
 
@@ -149,10 +149,10 @@ router.post('/', authMiddleware, requireRole('business'), [
         [name, description, address, city, state, zip_code, category, contact_info, image_url, userId]
       );
     } else {
-      // Create new business
+      // Create new business - auto-approve
       business = await db.one(
-        `INSERT INTO businesses (user_id, name, description, address, city, state, zip_code, category, contact_info, image_url)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `INSERT INTO businesses (user_id, name, description, address, city, state, zip_code, category, contact_info, image_url, is_approved)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
          RETURNING *`,
         [userId, name, description, address, city, state, zip_code, category, contact_info, image_url]
       );

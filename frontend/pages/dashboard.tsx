@@ -11,6 +11,10 @@ interface Business {
   name: string;
   category: string;
   is_approved: boolean;
+  address?: string;
+  city?: string;
+  contact_info?: string;
+  image_url?: string | null;
   services?: Service[];
 }
 
@@ -40,7 +44,15 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'profile'>('bookings');
 
   useEffect(() => {
-    if (!user || user.role !== 'business') {
+    if (!user) {
+      router.push('/login');
+      return;
+    }
+    if (user.role === 'admin') {
+      router.push('/admin');
+      return;
+    }
+    if (user.role !== 'business') {
       router.push('/');
       return;
     }
@@ -137,31 +149,28 @@ export default function Dashboard() {
           <div className="flex gap-8">
             <button
               onClick={() => setActiveTab('bookings')}
-              className={`pb-4 font-medium border-b-2 transition ${
-                activeTab === 'bookings'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`pb-4 font-medium border-b-2 transition ${activeTab === 'bookings'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Bookings
             </button>
             <button
               onClick={() => setActiveTab('services')}
-              className={`pb-4 font-medium border-b-2 transition ${
-                activeTab === 'services'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`pb-4 font-medium border-b-2 transition ${activeTab === 'services'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Services
             </button>
             <button
               onClick={() => setActiveTab('profile')}
-              className={`pb-4 font-medium border-b-2 transition ${
-                activeTab === 'profile'
-                  ? 'border-primary-600 text-primary-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`pb-4 font-medium border-b-2 transition ${activeTab === 'profile'
+                ? 'border-primary-600 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Profile
             </button>
@@ -196,15 +205,14 @@ export default function Dashboard() {
                           {new Date(booking.start_time).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            booking.status === 'booked' ? 'bg-blue-100 text-blue-800' :
+                          <span className={`px-2 py-1 text-xs rounded-full ${booking.status === 'booked' ? 'bg-blue-100 text-blue-800' :
                             booking.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                              'bg-red-100 text-red-800'
+                            }`}>
                             {booking.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">${booking.total_price}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">UGX {booking.total_price.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -236,14 +244,13 @@ export default function Dashboard() {
                   <div key={service.id} className="bg-white rounded-lg shadow-md p-6">
                     <div className="flex justify-between items-start mb-4">
                       <h3 className="text-xl font-semibold">{service.service_name}</h3>
-                      <span className={`px-3 py-1 text-xs rounded-full ${
-                        service.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span className={`px-3 py-1 text-xs rounded-full ${service.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
                         {service.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
                     <div className="space-y-2 text-sm text-gray-600">
-                      <p>💵 ${service.price}</p>
+                      <p>💵 UGX {service.price.toLocaleString()}</p>
                       <p>⏱️ {service.duration} minutes</p>
                     </div>
                   </div>
@@ -266,28 +273,96 @@ export default function Dashboard() {
         {activeTab === 'profile' && (
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-6">Business Profile</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
-                <p className="text-gray-900">{business.name}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <p className="text-gray-900">{business.category}</p>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                <p className="text-gray-900">
-                  {business.is_approved ? 'Approved' : 'Pending Approval'}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Left: Logo */}
+              <div className="md:col-span-1 flex flex-col items-center">
+                <div className="w-32 h-32 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden mb-3 border border-dashed border-gray-300">
+                  {business.image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={business.image_url}
+                      alt={business.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-3xl text-gray-400">{business.name.charAt(0)}</span>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mb-2 text-center">
+                  Logo
                 </p>
-              </div>
-              <div className="pt-4">
                 <Link
                   href="/dashboard/edit-profile"
-                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                  className="px-4 py-2 text-xs bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition font-medium"
                 >
-                  Edit Profile
+                  Upload / change logo
                 </Link>
+              </div>
+
+              {/* Right: Organisation details */}
+              <div className="md:col-span-2 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                      Organisation name
+                    </label>
+                    <p className="text-sm text-gray-900">{business.name}</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                      Email
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {/* Business contact email comes from contact_info or is managed in profile setup */}
+                      {business.contact_info || 'Not set'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                      Location
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {business.city || business.address || 'Not set'}
+                    </p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 mb-1">
+                      Phone number
+                    </label>
+                    <p className="text-sm text-gray-900">
+                      {/* Phone number can be stored inside contact_info or in user profile; surface here if present */}
+                      {business.contact_info || 'Not set'}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Category
+                  </label>
+                  <p className="text-sm text-gray-900">{business.category}</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-500 mb-1">
+                    Status
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {business.is_approved ? 'Approved' : 'Pending Approval'}
+                  </p>
+                </div>
+
+                <div className="pt-4">
+                  <Link
+                    href="/dashboard/edit-profile"
+                    className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                  >
+                    Edit profile details
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

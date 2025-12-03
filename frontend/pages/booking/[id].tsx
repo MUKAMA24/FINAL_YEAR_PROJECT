@@ -148,7 +148,7 @@ export default function BookingDetails() {
                 <div className="space-y-2 text-sm">
                   <p><strong>Service:</strong> {booking.service_name}</p>
                   <p><strong>Duration:</strong> {booking.duration} minutes</p>
-                  <p><strong>Price:</strong> ${booking.total_price}</p>
+                  <p><strong>Price:</strong> UGX {booking.total_price.toLocaleString()}</p>
                 </div>
               </div>
 
@@ -178,7 +178,7 @@ export default function BookingDetails() {
               >
                 Back to Home
               </Link>
-              
+
               {booking.status === 'booked' && (
                 <button
                   onClick={handleCancelBooking}

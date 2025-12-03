@@ -1,8 +1,10 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
+import { useAuth } from '@/context/AuthContext';
 
 interface Business {
   id: number;
@@ -12,9 +14,12 @@ interface Business {
   city: string;
   rating: number;
   total_reviews: number;
+  is_approved: boolean;
 }
 
 export default function Businesses() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('');
@@ -22,7 +27,7 @@ export default function Businesses() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
-  const categories = ['barber', 'tutor', 'mechanic', 'salon', 'spa', 'dentist', 'therapist', 'fitness', 'beauty', 'wellness'];
+  const categories = ['barber', 'tutor', 'mechanic', 'salon', 'spa', 'dentist', 'therapist', 'fitness', 'beauty', 'wellness', 'healthcare'];
 
   useEffect(() => {
     fetchBusinesses();
@@ -36,13 +41,13 @@ export default function Businesses() {
       if (searchTerm) params.search = searchTerm;
 
       const response = await api.get('/businesses', { params });
-      
+
       if (page === 1) {
         setBusinesses(response.data.businesses);
       } else {
         setBusinesses(prev => [...prev, ...response.data.businesses]);
       }
-      
+
       setHasMore(response.data.businesses.length === 12);
     } catch (error: any) {
       toast.error('Failed to load businesses');
@@ -109,11 +114,10 @@ export default function Businesses() {
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => handleCategoryChange('')}
-                  className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
-                    category === ''
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
+                  className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${category === ''
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
                 >
                   All
                 </button>
@@ -121,11 +125,10 @@ export default function Businesses() {
                   <button
                     key={cat}
                     onClick={() => handleCategoryChange(cat)}
-                    className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${
-                      category === cat
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
+                    className={`px-4 py-2 rounded-xl font-semibold transition-all duration-200 ${category === cat
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
                   >
                     {cat.charAt(0).toUpperCase() + cat.slice(1)}
                   </button>
@@ -167,15 +170,22 @@ export default function Businesses() {
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-gray-800 mb-1">{business.name}</h3>
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-xl font-bold text-gray-800">{business.name}</h3>
+                            {!business.is_approved && (
+                              <span className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">
+                                Pending
+                              </span>
+                            )}
+                          </div>
                           <span className="inline-block px-3 py-1 bg-gradient-to-r from-blue-100 to-indigo-100 text-blue-700 text-xs font-semibold rounded-full">
                             {business.category}
                           </span>
                         </div>
                       </div>
-                      
+
                       <p className="text-gray-600 mb-4 line-clamp-2 min-h-[3rem]">{business.description}</p>
-                      
+
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center bg-yellow-50 px-3 py-1 rounded-full">
                           <span className="text-yellow-500 text-lg">★</span>
@@ -190,7 +200,7 @@ export default function Businesses() {
                           <p className="text-sm text-gray-500 font-medium">📍 {business.city}</p>
                         )}
                       </div>
-                      
+
                       <Link
                         href={`/business/${business.id}`}
                         className="block w-full text-center px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 transform hover:scale-105 shadow-md"

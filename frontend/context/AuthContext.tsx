@@ -84,7 +84,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Redirect based on role
       if (userData.role === 'business') {
-        router.push('/dashboard');
+        // After creating a business user account, go to business profile setup
+        router.push('/dashboard/business-setup');
       } else {
         router.push('/');
       }

@@ -70,6 +70,25 @@ router.put('/businesses/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/admin/businesses/:id - Remove a business (does not delete owner account)
+router.delete('/businesses/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const business = await db.oneOrNone('SELECT id FROM businesses WHERE id = $1', [id]);
+    if (!business) {
+      return res.status(404).json({ error: 'Business not found' });
+    }
+
+    await db.none('DELETE FROM businesses WHERE id = $1', [id]);
+
+    res.json({ message: 'Business removed successfully' });
+  } catch (error) {
+    console.error('Admin delete business error:', error);
+    res.status(500).json({ error: 'Failed to remove business' });
+  }
+});
+
 // GET /api/admin/stats - Get platform statistics
 router.get('/stats', async (req, res) => {
   try {
@@ -87,6 +106,32 @@ router.get('/stats', async (req, res) => {
   } catch (error) {
     console.error('Admin get stats error:', error);
     res.status(500).json({ error: 'Failed to fetch statistics' });
+  }
+});
+
+// GET /api/admin/revenue-by-business - Revenue breakdown per business (completed bookings only)
+router.get('/revenue-by-business', async (req, res) => {
+  try {
+    const rows = await db.any(
+      `
+      SELECT 
+        bus.id AS business_id,
+        bus.name AS business_name,
+        COALESCE(SUM(b.total_price), 0) AS revenue,
+        COUNT(b.id) AS completed_bookings
+      FROM businesses bus
+      LEFT JOIN bookings b 
+        ON b.business_id = bus.id 
+       AND b.status = 'completed'
+      GROUP BY bus.id, bus.name
+      ORDER BY revenue DESC, business_name ASC
+      `
+    );
+
+    res.json({ revenue: rows });
+  } catch (error) {
+    console.error('Admin get revenue by business error:', error);
+    res.status(500).json({ error: 'Failed to fetch revenue breakdown' });
   }
 });
 
@@ -113,6 +158,30 @@ router.get('/users', async (req, res) => {
   } catch (error) {
     console.error('Admin get users error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// DELETE /api/admin/users/:id - Remove a non-admin user (e.g. customer)
+router.delete('/users/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent deleting admin accounts
+    const user = await db.oneOrNone('SELECT id, role FROM users WHERE id = $1', [id]);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role === 'admin') {
+      return res.status(400).json({ error: 'Cannot delete admin users' });
+    }
+
+    await db.none('DELETE FROM users WHERE id = $1', [id]);
+
+    res.json({ message: 'User removed successfully' });
+  } catch (error) {
+    console.error('Admin delete user error:', error);
+    res.status(500).json({ error: 'Failed to remove user' });
   }
 });
 

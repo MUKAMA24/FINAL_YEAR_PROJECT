@@ -178,11 +178,10 @@ export default function BusinessProfile() {
                   business.services.map((service) => (
                     <div
                       key={service.id}
-                      className={`border rounded-lg p-4 cursor-pointer transition ${
-                        selectedService?.id === service.id
+                      className={`border rounded-lg p-4 cursor-pointer transition ${selectedService?.id === service.id
                           ? 'border-primary-600 bg-primary-50'
                           : 'border-gray-200 hover:border-primary-300'
-                      }`}
+                        }`}
                       onClick={() => setSelectedService(service)}
                     >
                       <div className="flex justify-between items-start">
@@ -192,7 +191,7 @@ export default function BusinessProfile() {
                           <p className="text-sm text-gray-500 mt-2">⏱️ {service.duration} minutes</p>
                         </div>
                         <div className="text-right">
-                          <p className="text-2xl font-bold text-primary-600">${service.price}</p>
+                          <p className="text-2xl font-bold text-primary-600">UGX {service.price.toLocaleString()}</p>
                         </div>
                       </div>
                     </div>
@@ -239,7 +238,7 @@ export default function BusinessProfile() {
                 <>
                   <div className="mb-4 p-3 bg-gray-50 rounded">
                     <p className="font-semibold">{selectedService.service_name}</p>
-                    <p className="text-sm text-gray-600">${selectedService.price} · {selectedService.duration} min</p>
+                    <p className="text-sm text-gray-600">UGX {selectedService.price.toLocaleString()} · {selectedService.duration} min</p>
                   </div>
 
                   <h3 className="font-semibold mb-3">Select Time</h3>
@@ -249,11 +248,10 @@ export default function BusinessProfile() {
                         <button
                           key={slot.id}
                           onClick={() => setSelectedTimeSlot(slot)}
-                          className={`w-full p-3 text-left rounded-lg border transition ${
-                            selectedTimeSlot?.id === slot.id
+                          className={`w-full p-3 text-left rounded-lg border transition ${selectedTimeSlot?.id === slot.id
                               ? 'border-primary-600 bg-primary-50'
                               : 'border-gray-200 hover:border-primary-300'
-                          }`}
+                            }`}
                         >
                           <p className="font-medium">
                             {new Date(slot.start_time).toLocaleDateString()}

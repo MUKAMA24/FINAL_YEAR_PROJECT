@@ -83,41 +83,37 @@ export default function MyBookings() {
         <div className="mb-6 flex gap-4">
           <button
             onClick={() => setFilter('all')}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              filter === 'all'
+            className={`px-4 py-2 rounded-lg font-medium ${filter === 'all'
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+              }`}
           >
             All
           </button>
           <button
             onClick={() => setFilter('booked')}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              filter === 'booked'
+            className={`px-4 py-2 rounded-lg font-medium ${filter === 'booked'
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+              }`}
           >
             Upcoming
           </button>
           <button
             onClick={() => setFilter('completed')}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              filter === 'completed'
+            className={`px-4 py-2 rounded-lg font-medium ${filter === 'completed'
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+              }`}
           >
             Completed
           </button>
           <button
             onClick={() => setFilter('cancelled')}
-            className={`px-4 py-2 rounded-lg font-medium ${
-              filter === 'cancelled'
+            className={`px-4 py-2 rounded-lg font-medium ${filter === 'cancelled'
                 ? 'bg-primary-600 text-white'
                 : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+              }`}
           >
             Cancelled
           </button>
@@ -148,7 +144,7 @@ export default function MyBookings() {
                         {' - '}
                         {new Date(booking.end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
-                      <p>💵 ${booking.total_price}</p>
+                      <p>💵 UGX {booking.total_price.toLocaleString()}</p>
                     </div>
                   </div>
                   <div>
