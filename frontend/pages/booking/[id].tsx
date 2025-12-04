@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import Link from 'next/link';
@@ -35,13 +35,7 @@ export default function BookingDetails() {
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      fetchBooking();
-    }
-  }, [id]);
-
-  const fetchBooking = async () => {
+  const fetchBooking = useCallback(async () => {
     try {
       const response = await api.get(`/bookings/${id}`);
       setBooking(response.data.booking);
@@ -51,7 +45,13 @@ export default function BookingDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, router]);
+
+  useEffect(() => {
+    if (id) {
+      fetchBooking();
+    }
+  }, [id, fetchBooking]);
 
   const handleCancelBooking = async () => {
     if (!confirm('Are you sure you want to cancel this booking?')) {

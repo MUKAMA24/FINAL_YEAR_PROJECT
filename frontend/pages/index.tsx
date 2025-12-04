@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
 import { useAuth } from '@/context/AuthContext';
@@ -119,8 +119,8 @@ const PendingBookingsCalendar = ({ bookings }: { bookings: { status: string; sta
                 <div
                   key={idx}
                   className={`h-8 flex items-center justify-center rounded-md border text-[11px] ${hasBooking
-                      ? 'bg-primary-50 border-primary-400 text-primary-700 font-semibold'
-                      : 'bg-gray-50 border-gray-200 text-gray-700'
+                    ? 'bg-primary-50 border-primary-400 text-primary-700 font-semibold'
+                    : 'bg-gray-50 border-gray-200 text-gray-700'
                     } ${isToday ? 'ring-1 ring-primary-500' : ''}`}
                 >
                   {day}
@@ -160,21 +160,7 @@ export default function Home() {
 
   const categories = ['barber', 'tutor', 'mechanic', 'salon', 'spa', 'dentist', 'therapist'];
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, []);
-
-  useEffect(() => {
-    if (!user) return;
-
-    if (user.role === 'customer') {
-      fetchCustomerBookings();
-    } else if (user.role === 'business') {
-      fetchBusinessHomeData();
-    }
-  }, [user]);
-
-  const fetchBusinesses = async () => {
+  const fetchBusinesses = useCallback(async () => {
     try {
       setLoading(true);
       const params: any = { limit: 12 };
@@ -188,9 +174,9 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, searchTerm]);
 
-  const fetchCustomerBookings = async () => {
+  const fetchCustomerBookings = useCallback(async () => {
     try {
       setBookingsLoading(true);
       const response = await api.get('/bookings/customer/my');
@@ -200,9 +186,9 @@ export default function Home() {
     } finally {
       setBookingsLoading(false);
     }
-  };
+  }, []);
 
-  const fetchBusinessHomeData = async () => {
+  const fetchBusinessHomeData = useCallback(async () => {
     try {
       setBookingsLoading(true);
       // Get current user's business to know ID and name
@@ -217,7 +203,21 @@ export default function Home() {
     } finally {
       setBookingsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, [fetchBusinesses]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.role === 'customer') {
+      fetchCustomerBookings();
+    } else if (user.role === 'business') {
+      fetchBusinessHomeData();
+    }
+  }, [user, fetchCustomerBookings, fetchBusinessHomeData]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

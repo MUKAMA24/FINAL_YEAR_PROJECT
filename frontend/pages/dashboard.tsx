@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/router';
 import api from '@/lib/api';
@@ -43,6 +43,31 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'bookings' | 'services' | 'profile'>('bookings');
 
+  const fetchBusinessData = useCallback(async () => {
+    try {
+      const response = await api.get('/businesses/my/profile');
+      setBusiness(response.data);
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        toast.info('Please create your business profile');
+      } else {
+        toast.error('Failed to load business data');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchBookings = useCallback(async () => {
+    try {
+      if (!business) return;
+      const response = await api.get(`/bookings/business/${business.id}`);
+      setBookings(response.data.bookings);
+    } catch (error) {
+      console.error('Failed to load bookings');
+    }
+  }, [business]);
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -58,32 +83,7 @@ export default function Dashboard() {
     }
     fetchBusinessData();
     fetchBookings();
-  }, [user]);
-
-  const fetchBusinessData = async () => {
-    try {
-      const response = await api.get('/businesses/my/profile');
-      setBusiness(response.data);
-    } catch (error: any) {
-      if (error.response?.status === 404) {
-        toast.info('Please create your business profile');
-      } else {
-        toast.error('Failed to load business data');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchBookings = async () => {
-    try {
-      if (!business) return;
-      const response = await api.get(`/bookings/business/${business.id}`);
-      setBookings(response.data.bookings);
-    } catch (error) {
-      console.error('Failed to load bookings');
-    }
-  };
+  }, [user, router, fetchBusinessData, fetchBookings]);
 
   if (loading) {
     return (
@@ -99,7 +99,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow-md p-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Welcome to Your Dashboard</h2>
           <p className="text-gray-600 mb-6">
-            You haven't created your business profile yet. Let's get started!
+            You haven&apos;t created your business profile yet. Let&apos;s get started!
           </p>
           <Link
             href="/dashboard/business-setup"

@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import api from '@/lib/api';
 import { toast } from 'react-toastify';
@@ -29,16 +29,18 @@ export default function Businesses() {
 
   const categories = ['barber', 'tutor', 'mechanic', 'salon', 'spa', 'dentist', 'therapist', 'fitness', 'beauty', 'wellness', 'healthcare'];
 
-  useEffect(() => {
-    fetchBusinesses();
-  }, [category, page]);
+  const searchTermRef = useRef(searchTerm);
 
-  const fetchBusinesses = async () => {
+  useEffect(() => {
+    searchTermRef.current = searchTerm;
+  }, [searchTerm]);
+
+  const fetchBusinesses = useCallback(async () => {
     try {
       setLoading(true);
       const params: any = { limit: 12, page };
       if (category) params.category = category;
-      if (searchTerm) params.search = searchTerm;
+      if (searchTermRef.current) params.search = searchTermRef.current;
 
       const response = await api.get('/businesses', { params });
 
@@ -54,7 +56,11 @@ export default function Businesses() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, page]);
+
+  useEffect(() => {
+    fetchBusinesses();
+  }, [fetchBusinesses]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

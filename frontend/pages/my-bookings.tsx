@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/lib/api';
 import Link from 'next/link';
@@ -24,13 +24,7 @@ export default function MyBookings() {
   const [filter, setFilter] = useState<string>('all');
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchBookings();
-    }
-  }, [user, filter]);
-
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     try {
       setLoading(true);
       const params: any = {};
@@ -44,7 +38,13 @@ export default function MyBookings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
+
+  useEffect(() => {
+    if (user) {
+      fetchBookings();
+    }
+  }, [user, fetchBookings]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -84,8 +84,8 @@ export default function MyBookings() {
           <button
             onClick={() => setFilter('all')}
             className={`px-4 py-2 rounded-lg font-medium ${filter === 'all'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
           >
             All
@@ -93,8 +93,8 @@ export default function MyBookings() {
           <button
             onClick={() => setFilter('booked')}
             className={`px-4 py-2 rounded-lg font-medium ${filter === 'booked'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
           >
             Upcoming
@@ -102,8 +102,8 @@ export default function MyBookings() {
           <button
             onClick={() => setFilter('completed')}
             className={`px-4 py-2 rounded-lg font-medium ${filter === 'completed'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
           >
             Completed
@@ -111,8 +111,8 @@ export default function MyBookings() {
           <button
             onClick={() => setFilter('cancelled')}
             className={`px-4 py-2 rounded-lg font-medium ${filter === 'cancelled'
-                ? 'bg-primary-600 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              ? 'bg-primary-600 text-white'
+              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
           >
             Cancelled

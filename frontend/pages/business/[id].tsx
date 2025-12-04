@@ -1,6 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '@/lib/api';
 import Link from 'next/link';
 import { toast } from 'react-toastify';
@@ -54,20 +54,7 @@ export default function BusinessProfile() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (id) {
-      fetchBusiness();
-      fetchReviews();
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (selectedService) {
-      fetchTimeSlots();
-    }
-  }, [selectedService]);
-
-  const fetchBusiness = async () => {
+  const fetchBusiness = useCallback(async () => {
     try {
       const response = await api.get(`/businesses/${id}`);
       setBusiness(response.data);
@@ -76,9 +63,18 @@ export default function BusinessProfile() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchTimeSlots = async () => {
+  const fetchReviews = useCallback(async () => {
+    try {
+      const response = await api.get(`/reviews/business/${id}`);
+      setReviews(response.data.reviews);
+    } catch (error) {
+      console.error('Failed to load reviews');
+    }
+  }, [id]);
+
+  const fetchTimeSlots = useCallback(async () => {
     if (!selectedService) return;
 
     try {
@@ -87,16 +83,20 @@ export default function BusinessProfile() {
     } catch (error) {
       toast.error('Failed to load available time slots');
     }
-  };
+  }, [selectedService]);
 
-  const fetchReviews = async () => {
-    try {
-      const response = await api.get(`/reviews/business/${id}`);
-      setReviews(response.data.reviews);
-    } catch (error) {
-      console.error('Failed to load reviews');
+  useEffect(() => {
+    if (id) {
+      fetchBusiness();
+      fetchReviews();
     }
-  };
+  }, [id, fetchBusiness, fetchReviews]);
+
+  useEffect(() => {
+    if (selectedService) {
+      fetchTimeSlots();
+    }
+  }, [selectedService, fetchTimeSlots]);
 
   const handleBooking = () => {
     if (!selectedService || !selectedTimeSlot) {
@@ -179,8 +179,8 @@ export default function BusinessProfile() {
                     <div
                       key={service.id}
                       className={`border rounded-lg p-4 cursor-pointer transition ${selectedService?.id === service.id
-                          ? 'border-primary-600 bg-primary-50'
-                          : 'border-gray-200 hover:border-primary-300'
+                        ? 'border-primary-600 bg-primary-50'
+                        : 'border-gray-200 hover:border-primary-300'
                         }`}
                       onClick={() => setSelectedService(service)}
                     >
@@ -249,8 +249,8 @@ export default function BusinessProfile() {
                           key={slot.id}
                           onClick={() => setSelectedTimeSlot(slot)}
                           className={`w-full p-3 text-left rounded-lg border transition ${selectedTimeSlot?.id === slot.id
-                              ? 'border-primary-600 bg-primary-50'
-                              : 'border-gray-200 hover:border-primary-300'
+                            ? 'border-primary-600 bg-primary-50'
+                            : 'border-gray-200 hover:border-primary-300'
                             }`}
                         >
                           <p className="font-medium">
