@@ -2,6 +2,20 @@
 
 This guide helps you troubleshoot common Render deployment issues.
 
+## ⚠️ Are You Deploying from the Wrong Branch?
+
+**Check your deployment logs first!** Look for this line:
+```
+==&gt; Checking out commit [commit-hash] in branch [branch-name]
+```
+
+**If you see an old commit or "branch main" and experiencing issues:**
+- The deployment fixes are in the `copilot/fix-deployment-issues` branch
+- You need to either merge the PR or deploy from the PR branch
+- See [HOW_TO_DEPLOY_PR_BRANCH.md](./HOW_TO_DEPLOY_PR_BRANCH.md) for instructions
+
+---
+
 ## Error: Database Connection Refused (ECONNREFUSED 127.0.0.1:5432)
 
 ### Symptoms:
@@ -63,24 +77,46 @@ After successful deployment:
 ### Symptoms:
 ```
 ==&gt; Running 'npm run migrate && npm start'
+==&gt; Timed Out
+```
+Or:
+```
 ==&gt; Exited with status 1
 ```
 
 ### Root Cause:
-Running migrations in the start command causes deployment timeouts on Render's free tier.
+Running migrations in the start command causes deployment timeouts on Render's free tier. The deployment logs show you're deploying from an old branch that has this issue.
 
 ### Solution:
 
-This issue is fixed in the PR. The updated `render.yaml` has:
+#### Check Your Deployment Branch First
+
+Look at your deployment logs for this line:
+```
+==&gt; Checking out commit [commit-hash] in branch [branch-name]
+```
+
+**If it says "branch main" and commit is not recent:**
+- You're deploying old code without the fixes
+- The fixes are in the `copilot/fix-deployment-issues` branch
+
+#### Option 1: Merge PR First (Recommended)
+1. On GitHub, merge the `copilot/fix-deployment-issues` PR to `main`
+2. Render will auto-deploy (if enabled) or manually deploy
+3. After deployment, run migrations in Shell: `node database/migrate.js`
+
+#### Option 2: Deploy from PR Branch
+1. See detailed guide: [HOW_TO_DEPLOY_PR_BRANCH.md](./HOW_TO_DEPLOY_PR_BRANCH.md)
+2. In Render: Settings → Build & Deploy → Branch
+3. Change from `main` to `copilot/fix-deployment-issues`
+4. Save changes to trigger new deployment
+5. After deployment, run migrations in Shell: `node database/migrate.js`
+
+The updated `render.yaml` in the PR has:
 ```yaml
 startCommand: node server.js
 # Migrations removed from start command
 ```
-
-**To apply this fix:**
-1. Merge the PR to your main branch, OR
-2. Deploy from the `copilot/fix-deployment-issues` branch
-3. Run migrations manually in Render Shell after deployment
 
 ---
 
