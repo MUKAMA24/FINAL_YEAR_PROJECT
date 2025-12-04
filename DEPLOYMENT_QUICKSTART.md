@@ -2,6 +2,8 @@
 
 This guide will get your application deployed in under 10 minutes.
 
+> **⚠️ Important**: Make sure you're deploying from a branch that includes the deployment fixes. If you encounter database connection errors (ECONNREFUSED), see [RENDER_TROUBLESHOOTING.md](./RENDER_TROUBLESHOOTING.md).
+
 ## Prerequisites
 
 - GitHub account
@@ -141,7 +143,8 @@ Expected response:
 - Run migrations: `node database/migrate.js` in Render Shell
 
 ### Still having issues?
-Check the detailed troubleshooting guide in [DEPLOYMENT.md](./DEPLOYMENT.md)
+- **Render-specific issues**: See [RENDER_TROUBLESHOOTING.md](./RENDER_TROUBLESHOOTING.md)
+- **General deployment guide**: [DEPLOYMENT.md](./DEPLOYMENT.md)
 
 ## Optional: Seed Sample Data
 
