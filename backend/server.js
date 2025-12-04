@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const db = require('./config/database');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -15,13 +16,20 @@ const paymentRoutes = require('./routes/payment.routes');
 
 const app = express();
 
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(require('helmet')());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(require('hpp')());
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
 // Rate limiting
 const limiter = require('express-rate-limit')({
@@ -40,9 +48,32 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/payments', paymentRoutes);
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Server is running' });
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Appointment Booking API',
+    version: '1.0.0',
+    status: 'running'
+  });
+});
+
+// Health check with database connectivity
+app.get('/api/health', async (req, res) => {
+  try {
+    await db.one('SELECT 1');
+    res.json({ 
+      status: 'OK', 
+      message: 'Server is running',
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'ERROR', 
+      message: 'Database connection failed',
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
+    });
+  }
 });
 
 // Error handling middleware

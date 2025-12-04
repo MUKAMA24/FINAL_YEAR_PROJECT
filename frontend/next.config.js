@@ -4,6 +4,10 @@ const nextConfig = {
   images: {
     domains: ['localhost'],
   },
+  // Optimize production builds
+  swcMinify: true,
+  // Reduce build time
+  productionBrowserSourceMaps: false,
 }
 
 module.exports = nextConfig
