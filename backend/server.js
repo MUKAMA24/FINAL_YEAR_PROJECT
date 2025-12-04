@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const db = require('./config/database');
 
 // Import routes
 const authRoutes = require('./routes/auth.routes');
@@ -59,7 +60,6 @@ app.get('/', (req, res) => {
 // Health check with database connectivity
 app.get('/api/health', async (req, res) => {
   try {
-    const db = require('./config/database');
     await db.one('SELECT 1');
     res.json({ 
       status: 'OK', 
@@ -71,7 +71,7 @@ app.get('/api/health', async (req, res) => {
     res.status(503).json({ 
       status: 'ERROR', 
       message: 'Database connection failed',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV !== 'production' ? error.message : undefined
     });
   }
 });

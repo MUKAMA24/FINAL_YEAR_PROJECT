@@ -6,6 +6,8 @@ services:
     region: oregon
     rootDir: backend
     buildCommand: npm install --production=false
+    # Note: Migrations are NOT run in startCommand to avoid deployment timeouts.
+    # Run migrations manually via Render Shell: node database/migrate.js
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
