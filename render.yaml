@@ -3,13 +3,18 @@ services:
     name: appointment-booking-backend
     env: node
     plan: free
+    region: oregon
     rootDir: backend
-    buildCommand: npm install
-    startCommand: npm run migrate && npm start
+    buildCommand: npm install --production=false
+    startCommand: node server.js
     envVars:
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 5000
+    healthCheckPath: /api/health
     autoDeploy: false
+    
 databases:
   - name: appointment-booking-db
     plan: free
